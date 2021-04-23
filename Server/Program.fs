@@ -9,9 +9,11 @@ open Server.Configurations
 open Server.Logging
 
 let webApp =
-    POST >=> routeStartsWith "/api/" >=> choose [
+    Server.Handler.logRequest >=> choose [
+        POST >=> routeStartsWith "/api/" >=> choose [
         Server.Handler.validateApiKey >=> route "/api/token" >=> Server.Handler.handler
-        Server.Handler.notFoundHandler]
+        Server.Handler.notFoundHandler] 
+    ]
 
 let configureApp (app : IApplicationBuilder) =
     app.UseGiraffe webApp
