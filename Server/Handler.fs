@@ -35,6 +35,7 @@ let validateApiKey: HttpHandler =
     let accessDenied  = setStatusCode 401 >=> text "Access Denied!"
     
     let validateApiKey (ctx : HttpContext) =
+        ctx.GetLogger().LogInformation(ctx.Request.Path.ToString())
         match ctx.TryGetRequestHeader "X-API-Key" with
         | Some k ->
             let isGuid, key  = Guid.TryParse k
