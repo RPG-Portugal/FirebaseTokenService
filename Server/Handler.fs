@@ -27,7 +27,7 @@ let handler: HttpHandler =
             | Error(status) ->
                 logger.LogError($"Request Failed with status: {status.ToString()}")
                 ["error", status.ToString()]
-        raise (NullReferenceException())
+                
         return! json (dict result) next ctx
     }
     

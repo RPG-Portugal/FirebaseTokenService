@@ -5,21 +5,21 @@ open FirebaseAdmin
 open FSharp.Data
 open FirebaseAdminUtil
 open Microsoft.Extensions.DependencyInjection
-open Microsoft.Extensions.Logging
 
 type ApiKeyValidator = Guid -> bool
 
 type FbApp = FirebaseApp
 
-let private settings = JsonProvider<"Resources/Service.json">.GetSample()
+let private firebaseSettings = JsonProvider<"Resources/Firebase.json">.GetSample()
+let serviceSettings = JsonProvider<"Resources/Service.json">.GetSample()
 
 let addSingletonServices (services : IServiceCollection) =
     
-    FbApp.createFromFile settings.ProjectId settings.CredentialsPath 
+    FbApp.createFromFile firebaseSettings.ProjectId firebaseSettings.CredentialsPath 
     |> services.AddSingleton<FbApp>
     |> ignore
      
-    settings.ApiKey.ToString()
+    serviceSettings.ApiKey.ToString()
     |> Guid
     |> fun apiKey -> apiKey.Equals
     |> services.AddSingleton<ApiKeyValidator>
