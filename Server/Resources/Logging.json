@@ -1,3 +1,0 @@
-﻿{ "Path" : "C:/projects/file/logs/",
-  "LogLevels" : ["Information","Error","Debug"],
-  "LogModes" : ["Console", "File"]}
