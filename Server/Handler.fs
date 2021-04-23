@@ -44,4 +44,11 @@ let validateApiKey: HttpHandler =
     
     authorizeRequest validateApiKey accessDenied
     
-let notFoundHandler: HttpHandler = RequestErrors.NOT_FOUND "Not Found"
+let notFoundHandler: HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let logger = ctx.GetLogger("NotFoundHandler")
+            logger.LogError($"Error 404 [PATH=\"{ctx.Request.Path.ToString()}\"]")
+            return! (RequestErrors.NOT_FOUND "Not Found") next ctx
+        }
+    
