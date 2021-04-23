@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Configurations.fs" />
+        <Compile Include="Logging.fs" />
+        <Compile Include="Handler.fs" />
+        <Compile Include="Program.fs" />
+        <Content Include="Resources\Logging.json" />
+        <Content Include="Resources\Service.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FSharp.Data" Version="4.1.0" />
+      <PackageReference Include="Giraffe" Version="4.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\FirebaseAdminUtil\FirebaseAdminUtil.fsproj" />
+      <ProjectReference Include="..\TokenService\TokenService.fsproj" />
+    </ItemGroup>
+
+</Project>

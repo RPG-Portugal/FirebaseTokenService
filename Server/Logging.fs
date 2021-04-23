@@ -1,0 +1,89 @@
+﻿module Server.Logging
+
+open System
+open System.IO
+open System.Text
+open FSharp.Data
+open Microsoft.Extensions.Logging
+
+let private config = JsonProvider<"Resources/Logging.json">.GetSample()
+
+type FileLogger(categoryName: string) =
+    let logLevels =
+        Array.map (fun t -> LogLevel.Parse (t.ToString())) config.LogLevels
+        |> Set.ofArray
+    
+    let path = config.Path
+    let logModes = config.LogModes |> set
+    
+    let getFileName() =
+        let today = DateTime.UtcNow.ToString("M_d_yyyy")
+        $"{path}log_{today}.log"
+    
+    let isEnabled = logLevels.Contains
+    
+    let logConsole (date: string) (logLvlTxt: string) (exceptionSeparator: string) (arrow: string) (eventTxt: string) (stateTxt: string) (exceptionText: unit -> string) (eventId: EventId) ``exception`` =
+        let original = Console.ForegroundColor
+        Console.ForegroundColor <- ConsoleColor.Blue
+        Console.Write(categoryName)
+        Console.ForegroundColor <- original
+        Console.WriteLine(logLvlTxt)
+        Console.ForegroundColor <- ConsoleColor.Yellow
+        Console.Write(date)
+        Console.ForegroundColor <- original
+        Console.Write(arrow)
+        if eventId.Id <> 0 then
+            Console.ForegroundColor <- ConsoleColor.Cyan
+            Console.Write(eventTxt)
+            Console.ForegroundColor <- original
+        Console.WriteLine(stateTxt)
+        if ``exception`` <> null then
+            Console.ForegroundColor <- ConsoleColor.Red
+            Console.WriteLine(exceptionSeparator)
+            Console.ForegroundColor <- original
+            Console.WriteLine(exceptionText())
+            Console.ForegroundColor <- ConsoleColor.Red
+            Console.WriteLine(exceptionSeparator)
+            Console.ForegroundColor <- original
+    
+    let logFile (file: StreamWriter) (date: string) (logLvlTxt: string) (exceptionSeparator: string) (arrow: string) (eventTxt: string) (stateTxt: string) (exceptionText: unit -> string) (eventId: EventId) ``exception`` =
+        file.Write(categoryName)
+        file.WriteLine(logLvlTxt)
+        file.Write(date)
+        file.Write(arrow)
+        if eventId.Id <> 0 then
+            file.Write(eventTxt)
+        file.WriteLine(stateTxt)
+        if ``exception`` <> null then
+            file.WriteLine(exceptionSeparator)
+            file.WriteLine(exceptionText())
+            file.WriteLine(exceptionSeparator)
+                        
+    interface ILogger with
+        member this.BeginScope _ = Unchecked.defaultof<IDisposable>
+        member this.IsEnabled logLevel = isEnabled logLevel
+        
+        member this.Log(logLevel, eventId, state, ``exception``, _) =
+            if isEnabled logLevel then
+                let date = DateTime.UtcNow.ToString("o")
+                let logLvlTxt = $" [{logLevel}]"
+                let exceptionSeparator = ":::: Exception ::::"
+                let arrow = " ===> "
+                let eventTxt = $"[{eventId.Name}({eventId.Id})] "
+                let stateTxt = state.ToString()
+                let exceptionText() = ``exception``.ToString()
+
+                if logModes.Contains "Console" then
+                    logConsole date logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
+                if logModes.Contains "File" then
+                    use file = getFileName() |> File.AppendText
+                    logFile file date logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
+                
+            
+type FileLoggerProvider() =
+    
+    interface ILoggerProvider with
+        member this.CreateLogger(categoryName) = FileLogger(categoryName) :> ILogger
+        member this.Dispose() = ()
+            
+                

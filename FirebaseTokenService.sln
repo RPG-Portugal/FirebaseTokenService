@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Server", "Server\Server.fsproj", "{ED39467A-37C4-43A6-9CDA-F85E26555B68}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FirebaseAdminUtil", "FirebaseAdminUtil\FirebaseAdminUtil.fsproj", "{6F208FC7-4A9A-4DC5-9B18-858593FC7557}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TokenService", "TokenService\TokenService.fsproj", "{FCD4F9DC-9F24-431D-B2BF-F66274B15F58}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F208FC7-4A9A-4DC5-9B18-858593FC7557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F208FC7-4A9A-4DC5-9B18-858593FC7557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F208FC7-4A9A-4DC5-9B18-858593FC7557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F208FC7-4A9A-4DC5-9B18-858593FC7557}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCD4F9DC-9F24-431D-B2BF-F66274B15F58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCD4F9DC-9F24-431D-B2BF-F66274B15F58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCD4F9DC-9F24-431D-B2BF-F66274B15F58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCD4F9DC-9F24-431D-B2BF-F66274B15F58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED39467A-37C4-43A6-9CDA-F85E26555B68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED39467A-37C4-43A6-9CDA-F85E26555B68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+EndGlobal
