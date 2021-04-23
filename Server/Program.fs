@@ -35,7 +35,7 @@ let main _ =
                     .Configure(configureApp)
                     .ConfigureLogging(configureLogging)
                     .ConfigureServices(configureServices)
-                    .UseUrls($"http://localhost:{serviceSettings.Port}")
+                    .UseUrls($"{serviceSettings.Protocol}://localhost:{serviceSettings.Port}")
                     |> ignore)
         .Build()
         .Run()
