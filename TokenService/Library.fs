@@ -13,7 +13,7 @@ module Service =
         then Result.Error(ErrorCode.UserIdNot64BitNumber)
         else Result.Ok(userId)
     
-    let handle app userId = task {
+    let createTokenForUserId app userId = task {
         match userId |> validateUserId |> Result.map (FbApp.createWithValidUserId app) with
         | Result.Ok(tokenTask) ->
             let! token = tokenTask
