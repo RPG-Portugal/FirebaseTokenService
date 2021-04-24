@@ -2,6 +2,7 @@
 Server/Resources/Service.json
 Server/Resources/Logging.json
 Server/Resources/Firebase.json
+.idea
 
 # Created by https://www.toptal.com/developers/gitignore/api/fsharp,dotnetcore,csharp,rider
 # Edit at https://www.toptal.com/developers/gitignore?templates=fsharp,dotnetcore,csharp,rider
