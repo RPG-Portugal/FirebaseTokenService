@@ -8,6 +8,7 @@ open Microsoft.Extensions.Logging
 open Server.Configurations
 open Server.Logging
 open Server.Handler
+open Server.Middleware
 
 let routes =
     logRequest >=> choose [
