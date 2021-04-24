@@ -2,31 +2,49 @@
 
 open System
 open System.IO
-open System.Text
 open FSharp.Data
 open Microsoft.Extensions.Logging
 
 let private config = JsonProvider<"Resources/Logging.json">.GetSample()
 
+let getTimeZoneDateTimeNow() =
+    "GMT Standard Time"
+    |> TimeZoneInfo.FindSystemTimeZoneById
+    |> fun timezone -> TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timezone)
+ 
 type FileLogger(categoryName: string) =
     let logLevels =
-        Array.map (fun t -> LogLevel.Parse (t.ToString())) config.LogLevels
+        config.LogLevels.Allowed
+        |> Array.map LogLevel.Parse
         |> Set.ofArray
     
     let path = config.Path
     let logModes = config.LogModes |> set
     
     let getFileName() =
-        let today = DateTime.UtcNow.ToString("M_d_yyyy")
-        $"{path}log_{today}.log"
+        let today = getTimeZoneDateTimeNow().ToString("dd_MM_yyyy")
+            in $"{path}log_{today}.log"
     
     let isEnabled = logLevels.Contains
     
-    let logConsole (date: string) (logLvlTxt: string) (exceptionSeparator: string) (arrow: string) (eventTxt: string) (stateTxt: string) (exceptionText: unit -> string) (eventId: EventId) ``exception`` =
+    let getLogLevelColor (lvl: LogLevel)=
+        config.LogLevels.Colors.JsonValue.Properties()
+        |> dict
+        |> (fun colors -> lvl.ToString() |> colors.TryGetValue)
+        |> (fun (found,color) ->
+            if found then
+                (color.AsString() |> ConsoleColor.Parse)
+                else Console.ForegroundColor)
+
+    (* TODO: low hanging fruit - clean this code to be more readable
+       Maybe use an object to get the fields as immutable state
+       ex: TextFormat.{ConsoleWrite(), FileWrite()} *)
+    let logConsole (date: string) (logLevel: LogLevel) (logLvlTxt: string) (exceptionSeparator: string) (arrow: string) (eventTxt: string) (stateTxt: string) (exceptionText: unit -> string) (eventId: EventId) ``exception`` =
         let original = Console.ForegroundColor
         Console.ForegroundColor <- ConsoleColor.Blue
         Console.Write(categoryName)
         Console.ForegroundColor <- original
+        Console.ForegroundColor <- getLogLevelColor logLevel
         Console.WriteLine(logLvlTxt)
         Console.ForegroundColor <- ConsoleColor.Yellow
         Console.Write(date)
@@ -65,7 +83,7 @@ type FileLogger(categoryName: string) =
         
         member this.Log(logLevel, eventId, state, ``exception``, _) =
             if isEnabled logLevel then
-                let date = DateTime.UtcNow.ToString("o")
+                let date = getTimeZoneDateTimeNow().ToString("o")
                 let logLvlTxt = $" [{logLevel}]"
                 let exceptionSeparator = ":::: Exception ::::"
                 let arrow = " ===> "
@@ -74,16 +92,13 @@ type FileLogger(categoryName: string) =
                 let exceptionText() = ``exception``.ToString()
 
                 if logModes.Contains "Console" then
-                    logConsole date logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
+                    logConsole date logLevel logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
                 if logModes.Contains "File" then
                     use file = getFileName() |> File.AppendText
                     logFile file date logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
-                
-            
+
 type FileLoggerProvider() =
     
     interface ILoggerProvider with
         member this.CreateLogger(categoryName) = FileLogger(categoryName) :> ILogger
         member this.Dispose() = ()
-            
-                

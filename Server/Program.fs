@@ -7,16 +7,18 @@ open Giraffe
 open Microsoft.Extensions.Logging
 open Server.Configurations
 open Server.Logging
+open Server.Handler
 
-let webApp =
-    Server.Handler.logRequest >=> choose [
-        POST >=> routeStartsWith "/api/" >=> choose [
-        Server.Handler.validateApiKey >=> route "/api/token" >=> Server.Handler.handler
-        Server.Handler.notFoundHandler] 
+let routes =
+    logRequest >=> choose [
+            POST >=> routeStartsWith "/api/" >=> choose [
+            validateApiKey >=> route "/api/token" >=> createTokenHandler
+            notFoundHandler
+        ] 
     ]
 
 let configureApp (app : IApplicationBuilder) =
-    app.UseGiraffe webApp
+    app.UseGiraffe routes
         
 let configureLogging (builder : ILoggingBuilder) =
     builder

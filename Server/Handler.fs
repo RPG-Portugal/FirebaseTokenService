@@ -13,7 +13,7 @@ type RequestBody = { UserId: string }
 let logRequest: HttpHandler =
     fun (next: HttpFunc) (ctx: HttpContext) ->
         let nl = Environment.NewLine
-        let logger = ctx.GetLogger("Request Logger")
+        let logger = ctx.GetLogger("Request-Logger")
         let req = ctx.Request
         
         let log: StringBuilder = StringBuilder(nl)
@@ -22,20 +22,20 @@ let logRequest: HttpHandler =
         log.Append("PATH    = ").Append(req.Path.ToString()).Append(nl) |> ignore
         log.Append("HEADERS:").Append(nl).Append(nl) |> ignore
         for h in req.Headers do
-            log.Append($"[{h.Key}]=[{h.Value}]").Append(nl) |> ignore
+            log.Append($"[{h.Key}] = [{h.Value}]").Append(nl) |> ignore
         log.Append(nl).Append("-----------------------") |> ignore
         logger.LogInformation(log.ToString())
         next ctx   
     
-let handler: HttpHandler =
+let createTokenHandler: HttpHandler =
     fun (next: HttpFunc) (ctx: HttpContext) -> task {        
-        let logger: ILogger = ctx.GetLogger("CREATE-TOKEN-HANDLER")
+        let logger: ILogger = ctx.GetLogger("Create Token Handler")
         let app = ctx.GetService<FbApp>()
         let! body = ctx.BindJsonAsync<RequestBody>()
         let! res = Service.handle app body.UserId
         
         logger.LogInformation($"userId: {body.UserId}")
-        
+
         let result =
             match res with
             | Ok(token) ->
