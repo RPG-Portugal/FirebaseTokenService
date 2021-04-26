@@ -1,9 +1,11 @@
 ﻿
 open System
+open System.Diagnostics
 open System.Net.Http
 open System.Text
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
+open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
@@ -17,7 +19,7 @@ let address = $"{serviceSettings.Protocol}://localhost:{serviceSettings.Port}"
 let health = "/health"
 let routes =
     choose [
-        routeStartsWith health >=> GET >=> text(DateTime.Now.ToString())
+        routeStartsWith health >=> GET >=> setStatusCode StatusCodes.Status200OK
         logRequest >=> choose [
                 routeStartsWith "/api/" >=> validateApiKey >=> route "/api/token" >=> choose [
                     POST >=> createTokenHandler
@@ -31,25 +33,16 @@ let runHeartbeatMonitor() =
     let timer = new System.Timers.Timer(Interval=1000.0,AutoReset=true,Enabled=true);
     timer.Elapsed.Add(
         fun _ ->
-            let t = task {
-                use restClient = new HttpClient()
-                let sendingRequestAt = DateTime.Now
-                let! res = restClient.GetAsync($"{address}{health}")
-                let! body = res.Content.ReadAsStringAsync()
-                let handleAt = DateTime.Parse body
-                let offset = sendingRequestAt - handleAt
-                let log =
-                    StringBuilder("[Status] = ").Append(res.StatusCode).Append(Environment.NewLine)
-                        .Append("[Sent] = ").Append(sendingRequestAt.ToString("o")).Append(Environment.NewLine)
-                        .Append("[Handled] = ").Append(handleAt.ToString("o")).Append(Environment.NewLine)
-                        .Append("[Offset] = ").Append(offset.Milliseconds.ToString()).Append("ms").ToString()
-                Server
-                    .Logging.loggerProvider
-                    .CreateLogger("Heartbeat Monitor")
-                    .LogInformation(log)
-                return ()
-            }
-            t.Result
+            use restClient = new HttpClient()
+            let st = Stopwatch()
+            let res = restClient.GetAsync($"{address}{health}").Result
+            let log =
+                StringBuilder("[Status] = ").Append(res.StatusCode).Append(Environment.NewLine)
+                    .Append("[TicksOffset] = ").Append(st.ElapsedTicks).Append(" ticks").ToString()
+            Server
+                .Logging.loggerProvider
+                .CreateLogger("Heartbeat Monitor")
+                .LogInformation(log)
         )
 
 let configureApp (app : IApplicationBuilder) =
