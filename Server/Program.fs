@@ -13,8 +13,6 @@ open Microsoft.Extensions.Logging
 open Server.Configurations
 open Server.Handler
 open Server.Middleware
-open FSharp.Control.Tasks.V2.ContextInsensitive
-
 let address = $"{serviceSettings.Protocol}://localhost:{serviceSettings.Port}"
 let health = "/health"
 let routes =
@@ -29,27 +27,25 @@ let routes =
             ]
     ]
 
-let runHeartbeatMonitor() = 
-    let timer = new System.Timers.Timer(Interval=1000.0,AutoReset=true,Enabled=true);
-    timer.Elapsed.Add(
-        fun _ ->
-            use restClient = new HttpClient()
-            let st = Stopwatch()
-            let res = restClient.GetAsync($"{address}{health}").Result
-            let log =
-                StringBuilder("[Status] = ").Append(res.StatusCode).Append(Environment.NewLine)
-                    .Append("[TicksOffset] = ").Append(st.ElapsedTicks).Append(" ticks").ToString()
-            Server
-                .Logging.loggerProvider
-                .CreateLogger("Heartbeat Monitor")
-                .LogInformation(log)
+let runHeartbeatMonitor =
+    let logger = Server.Logging.loggerProvider.CreateLogger("Heartbeat Monitor")
+    fun () ->
+        let timer = new System.Timers.Timer(Interval=1000.0,AutoReset=true,Enabled=true);
+        timer.Elapsed.Add(
+            fun _ ->
+                use restClient = new HttpClient()
+                let st = Stopwatch()
+                let res = restClient.GetAsync($"{address}{health}").Result
+                let log =
+                    StringBuilder("[Status] = ").Append(res.StatusCode).Append(Environment.NewLine)
+                        .Append("[TicksOffset] = ").Append(st.ElapsedTicks).Append(" ticks").ToString()
+                logger.LogInformation(log)
         )
 
 let configureApp (app : IApplicationBuilder) =
     app.UseGiraffe routes
         
 let configureLogging (builder : ILoggingBuilder) =
-    
     builder
         .ClearProviders()
         .AddProvider(Server.Logging.loggerProvider)
