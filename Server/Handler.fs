@@ -55,7 +55,7 @@ let createTokenHandler: HttpHandler =
                         logger.LogInformation($"Generated Token Successfully!")
                         respond {| Token=token |} 
                     | Error(error) ->
-                        logger.LogError($"Request Failed with status: {error}")
+                        logger.LogError($"Request Failed with status:{Environment.NewLine}{error}")
                         respondError error
         }
         
