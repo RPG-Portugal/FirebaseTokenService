@@ -7,10 +7,8 @@ open Microsoft.Extensions.Logging
 
 let private config = JsonProvider<"Resources/Logging.json">.GetSample()
 
-let getTimeZoneDateTimeNow() =
-    "GMT Standard Time"
-    |> TimeZoneInfo.FindSystemTimeZoneById
-    |> fun timezone -> TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timezone)
+let getTimeZoneDateTimeNow() = DateTime.Now
+    // "GMT Standard Time"|> TimeZoneInfo.FindSystemTimeZoneById|> fun timezone -> TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timezone)
  
 type CustomLogger(categoryName: string) =
     let logLevels =
