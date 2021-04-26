@@ -3,7 +3,7 @@
 open System
 open FirebaseAdmin
 open FSharp.Data
-open FirebaseAdminUtil
+open FirebaseUtil
 open Microsoft.Extensions.DependencyInjection
 
 type ApiKeyValidator = Guid -> bool
