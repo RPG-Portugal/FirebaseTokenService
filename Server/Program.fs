@@ -1,13 +1,11 @@
 ﻿
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
-open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
 open Microsoft.Extensions.Logging
 open Server.Configurations
-open Server.Logging
 open Server.Handler
 open Server.Middleware
 
@@ -26,7 +24,7 @@ let configureApp (app : IApplicationBuilder) =
 let configureLogging (builder : ILoggingBuilder) =
     builder
         .ClearProviders()
-        .AddProvider(loggerProvider())
+        .AddProvider(Server.Logging.loggerProvider)
         |> ignore
 
 let configureServices (services : IServiceCollection) =

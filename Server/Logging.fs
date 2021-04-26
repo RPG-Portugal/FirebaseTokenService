@@ -99,7 +99,7 @@ type CustomLogger(categoryName: string) =
                     use file = getFileName() |> File.AppendText
                     logFile file date logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
 
-let loggerProvider() =
+let loggerProvider =
     { new ILoggerProvider with
         member this.CreateLogger(categoryName) = CustomLogger(categoryName) :> ILogger
         member this.Dispose() = () }
