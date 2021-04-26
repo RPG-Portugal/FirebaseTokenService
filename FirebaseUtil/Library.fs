@@ -2,6 +2,7 @@
 
 open System.Threading.Tasks
 open FirebaseAdmin.Auth
+open FirebaseAdmin
 open Google.Apis.Auth.OAuth2
 open FSharp.Control.Tasks
 open Domain
