@@ -1,10 +1,10 @@
 ﻿namespace FirebaseUtil
 
 open System.Threading.Tasks
-open FirebaseAdmin
 open FirebaseAdmin.Auth
 open Google.Apis.Auth.OAuth2
 open FSharp.Control.Tasks
+open Domain
 
 module FbApp =
     
@@ -22,7 +22,7 @@ module FbApp =
         
     let validateUserId (userId: uint64) = Result.Ok(userId)
     
-    let createTokenForUserId app userId: Task<Result<string, ErrorCode>> = task {
+    let createTokenForUserId app userId: Task<Result<string, Error.ErrorCode>> = task {
         match userId |> validateUserId |> Result.map (string >> createWithValidUserId app) with
         | Result.Ok(tokenTask) ->
             let! token = tokenTask
