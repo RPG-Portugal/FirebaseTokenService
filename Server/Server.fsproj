@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Domain\Domain.fsproj" />
       <ProjectReference Include="..\FirebaseAdminUtil\FirebaseAdminUtil.fsproj" />
       <ProjectReference Include="..\TokenService\TokenService.fsproj" />
     </ItemGroup>

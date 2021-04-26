@@ -7,12 +7,10 @@ open Microsoft.Extensions.Logging
 
 let private config = JsonProvider<"Resources/Logging.json">.GetSample()
 
-let getTimeZoneDateTimeNow() =
-    "GMT Standard Time"
-    |> TimeZoneInfo.FindSystemTimeZoneById
-    |> fun timezone -> TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timezone)
+let getTimeZoneDateTimeNow() = DateTime.Now
+    // "GMT Standard Time"|> TimeZoneInfo.FindSystemTimeZoneById|> fun timezone -> TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timezone)
  
-type FileLogger(categoryName: string) =
+type CustomLogger(categoryName: string) =
     let logLevels =
         config.LogLevels.Allowed
         |> Array.map LogLevel.Parse
@@ -54,6 +52,7 @@ type FileLogger(categoryName: string) =
             Console.ForegroundColor <- ConsoleColor.Cyan
             Console.Write(eventTxt)
             Console.ForegroundColor <- original
+        Console.WriteLine()
         Console.WriteLine(stateTxt)
         if ``exception`` <> null then
             Console.ForegroundColor <- ConsoleColor.Red
@@ -71,6 +70,7 @@ type FileLogger(categoryName: string) =
         file.Write(arrow)
         if eventId.Id <> 0 then
             file.Write(eventTxt)
+        file.WriteLine()
         file.WriteLine(stateTxt)
         if ``exception`` <> null then
             file.WriteLine(exceptionSeparator)
@@ -97,8 +97,7 @@ type FileLogger(categoryName: string) =
                     use file = getFileName() |> File.AppendText
                     logFile file date logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
 
-type FileLoggerProvider() =
-    
-    interface ILoggerProvider with
-        member this.CreateLogger(categoryName) = FileLogger(categoryName) :> ILogger
-        member this.Dispose() = ()
+let loggerProvider =
+    { new ILoggerProvider with
+        member this.CreateLogger(categoryName) = CustomLogger(categoryName) :> ILogger
+        member this.Dispose() = () }

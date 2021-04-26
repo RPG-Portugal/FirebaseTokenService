@@ -6,17 +6,17 @@ open Microsoft.Extensions.DependencyInjection
 open Giraffe
 open Microsoft.Extensions.Logging
 open Server.Configurations
-open Server.Logging
 open Server.Handler
 open Server.Middleware
 
 let routes =
     logRequest >=> choose [
-            POST >=> routeStartsWith "/api/" >=> choose [
-            validateApiKey >=> route "/api/token" >=> createTokenHandler
+            routeStartsWith "/api/" >=> validateApiKey >=> route "/api/token" >=> choose [
+                POST >=> createTokenHandler
+                RequestErrors.METHOD_NOT_ALLOWED "Method not allowed!"
+            ]
             notFoundHandler
-        ] 
-    ]
+        ]
 
 let configureApp (app : IApplicationBuilder) =
     app.UseGiraffe routes
@@ -24,7 +24,7 @@ let configureApp (app : IApplicationBuilder) =
 let configureLogging (builder : ILoggingBuilder) =
     builder
         .ClearProviders()
-        .AddProvider(new FileLoggerProvider())
+        .AddProvider(Server.Logging.loggerProvider)
         |> ignore
 
 let configureServices (services : IServiceCollection) =
