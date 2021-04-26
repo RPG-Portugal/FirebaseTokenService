@@ -1,7 +1,5 @@
 ﻿module Domain.Error
 
-open Microsoft.AspNetCore.Http
-
 type ErrorMessage = string
 
 type ErrorCode =
