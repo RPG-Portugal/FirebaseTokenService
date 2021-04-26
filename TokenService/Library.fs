@@ -1,22 +1,20 @@
 ﻿namespace TokenService
 
 open System
+open System.Threading.Tasks
+open Domain.Error
+open Domain.Error
 open FirebaseAdminUtil
 open FSharp.Control.Tasks
-open TokenService.Status
 
 module Service =
         
-    let validateUserId (userId: string) =
-        let is64Bit, _ = UInt64.TryParse(userId)
-        if is64Bit |> not
-        then Result.Error(ErrorCode.UserIdNot64BitNumber)
-        else Result.Ok(userId)
+    let validateUserId (userId: uint64) = Result.Ok(userId)
     
-    let createTokenForUserId app userId = task {
-        match userId |> validateUserId |> Result.map (FbApp.createWithValidUserId app) with
+    let createTokenForUserId app userId: Task<Result<string, ErrorCode>> = task {
+        match userId |> validateUserId |> Result.map (string >> FbApp.createWithValidUserId app) with
         | Result.Ok(tokenTask) ->
             let! token = tokenTask
             return Result.Ok(token)
-        | Result.Error(e) -> return Error(e)
+        | Result.Error(e) -> return e
     }

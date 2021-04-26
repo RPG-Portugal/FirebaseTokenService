@@ -1,6 +1,7 @@
 ﻿
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
+open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
@@ -12,11 +13,12 @@ open Server.Middleware
 
 let routes =
     logRequest >=> choose [
-            POST >=> routeStartsWith "/api/" >=> choose [
-            validateApiKey >=> route "/api/token" >=> createTokenHandler
+            routeStartsWith "/api/" >=> validateApiKey >=> route "/api/token" >=> choose [
+                POST >=> createTokenHandler
+                RequestErrors.METHOD_NOT_ALLOWED "Method not allowed!"
+            ]
             notFoundHandler
-        ] 
-    ]
+        ]
 
 let configureApp (app : IApplicationBuilder) =
     app.UseGiraffe routes

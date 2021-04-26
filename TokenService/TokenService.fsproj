@@ -6,11 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Errors.fs" />
         <Compile Include="Library.fs" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Domain\Domain.fsproj" />
       <ProjectReference Include="..\FirebaseAdminUtil\FirebaseAdminUtil.fsproj" />
     </ItemGroup>
 

@@ -54,6 +54,7 @@ type FileLogger(categoryName: string) =
             Console.ForegroundColor <- ConsoleColor.Cyan
             Console.Write(eventTxt)
             Console.ForegroundColor <- original
+        Console.WriteLine()
         Console.WriteLine(stateTxt)
         if ``exception`` <> null then
             Console.ForegroundColor <- ConsoleColor.Red
@@ -71,6 +72,7 @@ type FileLogger(categoryName: string) =
         file.Write(arrow)
         if eventId.Id <> 0 then
             file.Write(eventTxt)
+        file.WriteLine()
         file.WriteLine(stateTxt)
         if ``exception`` <> null then
             file.WriteLine(exceptionSeparator)

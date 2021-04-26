@@ -1,31 +1,62 @@
 ﻿module Server.Handler
+open System
+open Domain.Error
 open Giraffe
 open Microsoft.AspNetCore.Http
+open Microsoft.AspNetCore.Http
+open Newtonsoft.Json
 open Server.Configurations
 open TokenService.Service
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.Extensions.Logging
 
+type ErrorResponse = {Error: ErrorData; StatusCode: option<int>}
+type RequestResult<'T> = Result<'T,ErrorResponse>
 
-let createTokenHandler: HttpHandler =
+module RequestResult =
+       let createError (code: ErrorCode, message: ErrorMessage, statusCode: option<int>) =
+        {Error =
+            {ErrorCode=code;
+             ErrorMessage=message};
+         StatusCode=statusCode}
+        
+       let error<'T> (code: ErrorCode, message: ErrorMessage, statusCode: option<int>): RequestResult<'T> =
+           createError (code, message, statusCode)    |> Error
+    
+let createTokenHandler: HttpHandler = 
     fun (next: HttpFunc) (ctx: HttpContext) ->
+        let respond res = json res next ctx
+        let respondError (error: ErrorResponse) =
+            Option.iter ctx.SetStatusCode error.StatusCode
+            error.Error |>(fun e -> {|ErrorCode=e.ErrorCode.ToString(); ErrorMessage=e.ErrorMessage|})|> respond 
+        
         task {
             let logger: ILogger = ctx.GetLogger("Create-Token-Handler")
-            let app = ctx.GetService<FbApp>()
-            let! body = ctx.BindJsonAsync<{|UserId: string|}>()
-            let! res = createTokenForUserId app body.UserId
-             
-            logger.LogInformation($"userId: {body.UserId}")
+            let! res = task {
+                try
+                    let app = ctx.GetService<FbApp>()
+                    let! body = ctx.BindJsonAsync<{|UserId: uint64|}>()
+                    logger.LogInformation($"userId: {body.UserId}")
+                    
+                    let! token = createTokenForUserId app body.UserId
+                        in return token |> Result.mapError (fun e -> RequestResult.createError(e, "Check error code", StatusCodes.Status500InternalServerError |> Some))
+                with
+                | :? JsonSerializationException ->
+                    return RequestResult.error(ErrorCode.InvalidUserId, "UserId must be 64 bit unsigned int (Snowflake)", StatusCodes.Status400BadRequest |> Some)
+                | :? JsonReaderException ->
+                    return RequestResult.error(ErrorCode.InvalidJsonPayload, "Body is malformed", StatusCodes.Status400BadRequest |> Some)
+                | _ ->
+                    return RequestResult.error (ErrorCode.UnknownError, "Internal Server Error", Some(StatusCodes.Status500InternalServerError))
+             }
+            
  
             return! match res with
                     | Ok(token) ->
                         logger.LogInformation($"Generated Token Successfully!")
-                        ["token", token] 
-                    | Error(status) ->
-                        logger.LogError($"Request Failed with status: {status.ToString()}")
-                        ["error", status.ToString()]
-            |> dict
-            |> fun res -> json res next ctx
+                        respond {| Token=token |} 
+                    | Error(error) ->
+                        logger.LogError($"Request Failed with status: {error}")
+                        respondError error
         }
         
 let notFoundHandler: HttpHandler =
