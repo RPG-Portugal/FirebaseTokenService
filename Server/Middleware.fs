@@ -28,7 +28,7 @@ let validateApiKey: HttpHandler =
 let logRequest: HttpHandler =
     fun (next: HttpFunc) (ctx: HttpContext) ->
         let nl = Environment.NewLine
-        let logger = ctx.GetLogger("Request-Logger")
+        let logger = ctx.GetLogger("Request Logger")
         let req = ctx.Request
         
         let log: StringBuilder = StringBuilder(nl)

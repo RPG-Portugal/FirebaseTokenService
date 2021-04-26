@@ -1,9 +1,4 @@
-﻿
-open System
-open System.Diagnostics
-open System.Net.Http
-open System.Text
-open Microsoft.AspNetCore.Builder
+﻿open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
@@ -13,34 +8,24 @@ open Microsoft.Extensions.Logging
 open Server.Configurations
 open Server.Handler
 open Server.Middleware
-let address = $"{serviceSettings.Protocol}://localhost:{serviceSettings.Port}"
-let health = "/health"
+
+let private address = $"{serviceSettings.Protocol}://localhost:{serviceSettings.Port}"
+let private health = "/api/health"
+let private healthAddress = $"{address}{health}"
+
 let routes =
     choose [
-        routeStartsWith health >=> GET >=> setStatusCode StatusCodes.Status200OK
-        logRequest >=> choose [
-                routeStartsWith "/api/" >=> validateApiKey >=> route "/api/token" >=> choose [
+        logRequest >=> validateApiKey >=> choose [
+                route health >=> GET >=> setStatusCode StatusCodes.Status200OK
+                routeStartsWith "/api/" >=> route "/api/token" >=> choose [
                     POST >=> createTokenHandler
                     RequestErrors.METHOD_NOT_ALLOWED "Method not allowed!"
-                ]
+                ] 
                 notFoundHandler
-            ]
+        ]
     ]
 
-let runHeartbeatMonitor =
-    let logger = Server.Logging.loggerProvider.CreateLogger("Heartbeat Monitor")
-    fun () ->
-        let timer = new System.Timers.Timer(Interval=1000.0,AutoReset=true,Enabled=true);
-        timer.Elapsed.Add(
-            fun _ ->
-                use restClient = new HttpClient()
-                let st = Stopwatch()
-                let res = restClient.GetAsync($"{address}{health}").Result
-                let log =
-                    StringBuilder("[Status] = ").Append(res.StatusCode).Append(Environment.NewLine)
-                        .Append("[TicksOffset] = ").Append(st.ElapsedTicks).Append(" ticks").ToString()
-                logger.LogInformation(log)
-        )
+
 
 let configureApp (app : IApplicationBuilder) =
     app.UseGiraffe routes
@@ -52,7 +37,7 @@ let configureLogging (builder : ILoggingBuilder) =
         |> ignore
 
 let configureServices (services : IServiceCollection) =
-    addSingletonServices services
+    Server.Logging.loggerProvider |> initServices services healthAddress
     services.AddGiraffe() |> ignore
 
 [<EntryPoint>]
@@ -66,7 +51,6 @@ let main _ =
                     .ConfigureServices(configureServices)
                     .UseUrls(address)
                     |> ignore
-                runHeartbeatMonitor()
             )
         .Build()
         .Run()
