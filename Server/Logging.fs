@@ -12,7 +12,7 @@ let getTimeZoneDateTimeNow() =
     |> TimeZoneInfo.FindSystemTimeZoneById
     |> fun timezone -> TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timezone)
  
-type FileLogger(categoryName: string) =
+type CustomLogger(categoryName: string) =
     let logLevels =
         config.LogLevels.Allowed
         |> Array.map LogLevel.Parse
@@ -99,8 +99,7 @@ type FileLogger(categoryName: string) =
                     use file = getFileName() |> File.AppendText
                     logFile file date logLvlTxt exceptionSeparator arrow eventTxt stateTxt exceptionText eventId ``exception``
 
-type FileLoggerProvider() =
-    
-    interface ILoggerProvider with
-        member this.CreateLogger(categoryName) = FileLogger(categoryName) :> ILogger
-        member this.Dispose() = ()
+let loggerProvider() =
+    { new ILoggerProvider with
+        member this.CreateLogger(categoryName) = CustomLogger(categoryName) :> ILogger
+        member this.Dispose() = () }

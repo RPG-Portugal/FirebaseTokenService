@@ -26,7 +26,7 @@ let configureApp (app : IApplicationBuilder) =
 let configureLogging (builder : ILoggingBuilder) =
     builder
         .ClearProviders()
-        .AddProvider(new FileLoggerProvider())
+        .AddProvider(loggerProvider())
         |> ignore
 
 let configureServices (services : IServiceCollection) =
