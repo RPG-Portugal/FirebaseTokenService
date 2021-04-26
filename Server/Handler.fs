@@ -3,10 +3,9 @@ open System
 open Domain.Error
 open Giraffe
 open Microsoft.AspNetCore.Http
-open Microsoft.AspNetCore.Http
 open Newtonsoft.Json
+open FirebaseUtil
 open Server.Configurations
-open TokenService.Service
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open Microsoft.Extensions.Logging
 
@@ -38,7 +37,7 @@ let createTokenHandler: HttpHandler =
                     let! body = ctx.BindJsonAsync<{|UserId: uint64|}>()
                     logger.LogInformation($"userId: {body.UserId}")
                     
-                    let! token = createTokenForUserId app body.UserId
+                    let! token = FbApp.createTokenForUserId app body.UserId
                         in return token |> Result.mapError (fun e -> RequestResult.createError(e, "Check error code", StatusCodes.Status500InternalServerError |> Some))
                 with
                 | :? JsonSerializationException ->
@@ -47,9 +46,8 @@ let createTokenHandler: HttpHandler =
                     return RequestResult.error(ErrorCode.InvalidJsonPayload, "Body is malformed", StatusCodes.Status400BadRequest |> Some)
                 | _ ->
                     return RequestResult.error (ErrorCode.UnknownError, "Internal Server Error", Some(StatusCodes.Status500InternalServerError))
-             }
-            
- 
+            }
+             
             return! match res with
                     | Ok(token) ->
                         logger.LogInformation($"Generated Token Successfully!")
