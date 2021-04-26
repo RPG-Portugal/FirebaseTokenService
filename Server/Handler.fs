@@ -3,6 +3,7 @@ open System
 open Domain.Error
 open Giraffe
 open Microsoft.AspNetCore.Http
+open Microsoft.FSharp.Core
 open Newtonsoft.Json
 open FirebaseUtil
 open Server.Configurations
@@ -30,7 +31,7 @@ let createTokenHandler: HttpHandler =
             error.Error |>(fun e -> {|ErrorCode=e.ErrorCode.ToString(); ErrorMessage=e.ErrorMessage|})|> respond 
         
         task {
-            let logger: ILogger = ctx.GetLogger("Create-Token-Handler")
+            let logger: ILogger = ctx.GetLogger("Create Token Handler")
             let! res = task {
                 try
                     let app = ctx.GetService<FbApp>()
