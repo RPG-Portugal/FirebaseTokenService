@@ -43,5 +43,6 @@ let initServices (services : IServiceCollection) (address: string) (loggerProvid
     apiKey.Equals
     |> services.AddSingleton<ApiKeyValidator>
     |> ignore
-        
-    startHeartbeatMonitor apiKey address loggerProvider
+    
+    if(serviceSettings.HeartbeatMonitor) then
+        startHeartbeatMonitor apiKey address loggerProvider
