@@ -21,7 +21,7 @@ module RequestResult =
          StatusCode=statusCode}
         
        let error<'T> (code: ErrorCode, message: ErrorMessage, statusCode: option<int>): RequestResult<'T> =
-           createError (code, message, statusCode)    |> Error
+           createError(code, message, statusCode) |> Error
     
 let createTokenHandler: HttpHandler = 
     fun (next: HttpFunc) (ctx: HttpContext) ->
@@ -46,7 +46,7 @@ let createTokenHandler: HttpHandler =
                 | :? JsonReaderException ->
                     return RequestResult.error(ErrorCode.InvalidJsonPayload, "Body is malformed", StatusCodes.Status400BadRequest |> Some)
                 | _ ->
-                    return RequestResult.error (ErrorCode.UnknownError, "Internal Server Error", Some(StatusCodes.Status500InternalServerError))
+                    return RequestResult.error (ErrorCode.UnknownError, "Internal Server Error", StatusCodes.Status500InternalServerError |> Some)
             }
              
             return! match res with
